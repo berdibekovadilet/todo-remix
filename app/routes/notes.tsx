@@ -14,6 +14,7 @@ export const meta: V2_MetaFunction = () => {
 };
 export default function NotesPage() {
     const notes = useLoaderData();
+
     return (
         <main>
             <NewNote/>
@@ -26,14 +27,20 @@ export async function loader() {
     const notes = await getStoredNotes();
     return notes;
 }
+
 export async function action({request}: any) {
     const formData = await request.formData();
     const noteData = Object.fromEntries(formData);
-    // Add validation...
+
+    if (noteData.title.trim().length < 3) {
+        return {message: "Invalid title: must be at least 3 characters long"}
+    }
+
     const existingNotes = await getStoredNotes();
     noteData.id = new Date().toISOString();
     const updatedNotes = existingNotes.concat(noteData);
     await storeNotes(updatedNotes);
+
     return redirect('/notes');
 }
 
